@@ -1,0 +1,11 @@
+name: react-portfolio
+services:
+  main:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    hostname: registration-logger
+    stdin_open: true
+    tty: true
+    volumes:
+      - ..:/home/user/workspace
