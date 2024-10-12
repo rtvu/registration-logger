@@ -1,5 +1,5 @@
 {
-  "name": "registration-logger",
+  "name": "@rtvu/registration-logger",
   "version": "0.1.0",
   "description": "A registration style logger written in Typescript.",
   "main": "./dist/index.js",
@@ -8,20 +8,27 @@
   "files": [
     "dist"
   ],
-  "type": "module",
   "scripts": {
     "build": "tsup",
-    "dev": "tsup --watch",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "publish": "npm run build && npm publish --access=public"
   },
   "keywords": [
     "log",
     "logger",
     "logging"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rtvu/registration-logger.git"
+  },
   "author": "Ryan Vu",
   "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/rtvu/registration-logger/issues"
+  },
+  "homepage": "https://github.com/rtvu/registration-logger#readme",
   "devDependencies": {
     "@eslint/js": "^9.12.0",
     "@types/eslint__js": "^8.42.3",
