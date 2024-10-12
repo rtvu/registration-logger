@@ -6,6 +6,14 @@ export enum LogLevel {
   Off = 4,
 }
 
+const logLevelDisplay: Record<LogLevel, string> = {
+  [LogLevel.Debug]: "Debug",
+  [LogLevel.Info]: "Info",
+  [LogLevel.Warn]: "Warn",
+  [LogLevel.Error]: "Error",
+  [LogLevel.Off]: "Off",
+};
+
 export type LogKey = { name: string } | { description: string };
 
 export type LogRegistry = Map<LogKey, LogLevel>;
@@ -37,5 +45,18 @@ export function logAddKey(key: LogKey, level: LogLevel): void {
 export function logAddKeys(list: [LogKey, LogLevel][]): void {
   for (const [key, level] of list) {
     logAddKey(key, level);
+  }
+}
+
+export function log(
+  key: LogKey,
+  level: LogLevel.Debug | LogLevel.Info | LogLevel.Warn | LogLevel.Error,
+  ...data: any[]
+) {
+  const registeredLevel = currentRegistry.get(key);
+  if (registeredLevel !== undefined && registeredLevel <= level) {
+    const levelDisplay = logLevelDisplay[level];
+    const keyDisplay = "description" in key ? key.description : key.name;
+    console.log(`${levelDisplay}:`, `${keyDisplay}:`, ...data);
   }
 }
