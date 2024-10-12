@@ -1,6 +1,18 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test, vi, MockInstance } from "vitest";
 
-import { log, logGetRegistry, logSetRegistry, logNewRegistry, logAddKey, logAddKeys, LogLevel } from "./index";
+import {
+  log,
+  logDebug,
+  logInfo,
+  logWarn,
+  logError,
+  logGetRegistry,
+  logSetRegistry,
+  logNewRegistry,
+  logAddKey,
+  logAddKeys,
+  LogLevel,
+} from "./index";
 
 describe("Registry", () => {
   beforeEach(() => {
@@ -127,5 +139,43 @@ describe("Log", () => {
     log(key3, LogLevel.Warn, "Logged");
     log(key3, LogLevel.Error, "Logged");
     expect(consoleLogMock.mock.results.length).toBe(5);
+  });
+});
+
+describe("Specific log", () => {
+  let consoleLogMock: MockInstance<(...data: any[]) => void>;
+
+  beforeAll(() => {
+    consoleLogMock = vi.spyOn(console, "log").mockImplementation((...data: any[]) => data.join(" "));
+  });
+
+  beforeEach(() => {
+    logNewRegistry();
+  });
+
+  afterEach(() => {
+    consoleLogMock.mockClear();
+  });
+
+  afterAll(() => {
+    logNewRegistry();
+    consoleLogMock.mockRestore();
+  });
+
+  test("should log specified level", () => {
+    const key1 = { name: "key1" };
+    logAddKey(key1, LogLevel.Debug);
+
+    const getResult = (levelDisplay: string) => `${levelDisplay}: key1: Logged`;
+
+    logDebug(key1, "Logged");
+    logInfo(key1, "Logged");
+    logWarn(key1, "Logged");
+    logError(key1, "Logged");
+
+    expect(consoleLogMock.mock.results[0]).toEqual({ type: "return", value: getResult("Debug") });
+    expect(consoleLogMock.mock.results[1]).toEqual({ type: "return", value: getResult("Info") });
+    expect(consoleLogMock.mock.results[2]).toEqual({ type: "return", value: getResult("Warn") });
+    expect(consoleLogMock.mock.results[3]).toEqual({ type: "return", value: getResult("Error") });
   });
 });

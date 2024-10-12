@@ -60,3 +60,19 @@ export function log(
     console.log(`${levelDisplay}:`, `${keyDisplay}:`, ...data);
   }
 }
+
+export function logDebug(key: LogKey, ...data: any[]): void {
+  log(key, LogLevel.Debug, ...data);
+}
+
+export function logInfo(key: LogKey, ...data: any[]): void {
+  log(key, LogLevel.Info, ...data);
+}
+
+export function logWarn(key: LogKey, ...data: any[]): void {
+  log(key, LogLevel.Warn, ...data);
+}
+
+export function logError(key: LogKey, ...data: any[]): void {
+  log(key, LogLevel.Error, ...data);
+}
