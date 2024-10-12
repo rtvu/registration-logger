@@ -1,3 +1,9 @@
 # Local
 /local/
 .DS_Store
+
+# Node
+/node_modules/
+
+# Build artifacts
+dist

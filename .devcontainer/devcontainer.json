@@ -2,5 +2,17 @@
   "name": "registration-logger",
   "dockerComposeFile": "../docker/compose.yaml",
   "service": "main",
-  "workspaceFolder": "/home/user/workspace"
+  "workspaceFolder": "/home/user/workspace",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.formatOnSave": true,
+        "editor.tabSize": 2,
+        "prettier.prettierPath": "./node_modules/prettier",
+        "prettier.requireConfig": true
+      },
+      "extensions": ["dbaeumer.vscode-eslint", "esbenp.prettier-vscode", "vitest.explorer"]
+    }
+  }
 }
