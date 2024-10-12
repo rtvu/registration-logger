@@ -24,3 +24,18 @@ export function logNewRegistry(): LogRegistry {
   currentRegistry = new Map<LogKey, LogLevel>();
   return currentRegistry;
 }
+
+export function logAddKey(key: LogKey, level: LogLevel): void {
+  const registeredLevel = currentRegistry.get(key);
+  if (registeredLevel === undefined) {
+    currentRegistry.set(key, level);
+  } else {
+    currentRegistry.set(key, Math.min(level, registeredLevel));
+  }
+}
+
+export function logAddKeys(list: [LogKey, LogLevel][]): void {
+  for (const [key, level] of list) {
+    logAddKey(key, level);
+  }
+}
