@@ -12,6 +12,7 @@
     "build": "tsup",
     "test": "vitest run",
     "test:watch": "vitest",
+    "lint": "eslint \"./src/**/*.ts\" --quiet",
     "publish": "npm run build && npm publish --access=public"
   },
   "keywords": [

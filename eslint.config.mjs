@@ -6,5 +6,14 @@ export default tseslint.config(
   eslint.configs.recommended,
   ...tseslint.configs.strictTypeChecked,
   ...tseslint.configs.stylisticTypeChecked,
+  {
+    languageOptions: {
+      parserOptions: {
+        projectService: {
+          allowDefaultProject: ["eslint.config.mjs", "prettier.config.mjs", "tsup.config.ts", "vitest.config.ts"],
+        },
+      },
+    },
+  },
   prettiereslint,
 );

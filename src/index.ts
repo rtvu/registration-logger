@@ -51,7 +51,7 @@ export function logAddKeys(list: [LogKey, LogLevel][]): void {
 export function log(
   key: LogKey,
   level: LogLevel.Debug | LogLevel.Info | LogLevel.Warn | LogLevel.Error,
-  ...data: any[]
+  ...data: unknown[]
 ) {
   const registeredLevel = currentRegistry.get(key);
   if (registeredLevel !== undefined && registeredLevel <= level) {
@@ -61,18 +61,18 @@ export function log(
   }
 }
 
-export function logDebug(key: LogKey, ...data: any[]): void {
+export function logDebug(key: LogKey, ...data: unknown[]): void {
   log(key, LogLevel.Debug, ...data);
 }
 
-export function logInfo(key: LogKey, ...data: any[]): void {
+export function logInfo(key: LogKey, ...data: unknown[]): void {
   log(key, LogLevel.Info, ...data);
 }
 
-export function logWarn(key: LogKey, ...data: any[]): void {
+export function logWarn(key: LogKey, ...data: unknown[]): void {
   log(key, LogLevel.Warn, ...data);
 }
 
-export function logError(key: LogKey, ...data: any[]): void {
+export function logError(key: LogKey, ...data: unknown[]): void {
   log(key, LogLevel.Error, ...data);
 }

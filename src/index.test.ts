@@ -23,7 +23,7 @@ describe("Registry", () => {
     logNewRegistry();
   });
 
-  test("should get, set, and new", async () => {
+  test("should get, set, and new", () => {
     const firstRegistry = logGetRegistry();
     const secondRegistry = logNewRegistry();
 
@@ -36,20 +36,21 @@ describe("Registry", () => {
   });
 
   test("should add keys", () => {
-    const keys = [{ name: "key0" }, { name: "key1" }, { name: "key2" }, { name: "key3" }];
+    const key0 = { name: "key0" };
+    const key1 = { name: "key1" };
+    const key2 = { name: "key2" };
+    const key3 = { name: "key3" };
     const registry = logGetRegistry();
 
-    logAddKey(keys[0], LogLevel.Off);
+    logAddKey(key0, LogLevel.Off);
     logAddKeys([
-      [keys[1], LogLevel.Off],
-      [keys[2], LogLevel.Off],
+      [key1, LogLevel.Off],
+      [key2, LogLevel.Off],
     ]);
-
-    for (let i = 0; i < keys.length - 1; i++) {
-      expect(registry.has(keys[i])).toEqual(true);
-    }
-
-    expect(registry.has(keys[3])).toEqual(false);
+    expect(registry.has(key0)).toEqual(true);
+    expect(registry.has(key1)).toEqual(true);
+    expect(registry.has(key2)).toEqual(true);
+    expect(registry.has(key3)).toEqual(false);
   });
 
   test("should keep lowest level", () => {
@@ -80,10 +81,10 @@ describe("Registry", () => {
 });
 
 describe("Log", () => {
-  let consoleLogMock: MockInstance<(...data: any[]) => void>;
+  let consoleLogMock: MockInstance<(...data: unknown[]) => void>;
 
   beforeAll(() => {
-    consoleLogMock = vi.spyOn(console, "log").mockImplementation((...data: any[]) => data.join(" "));
+    consoleLogMock = vi.spyOn(console, "log").mockImplementation((...data: unknown[]) => data.join(" "));
   });
 
   beforeEach(() => {
@@ -143,10 +144,10 @@ describe("Log", () => {
 });
 
 describe("Specific log", () => {
-  let consoleLogMock: MockInstance<(...data: any[]) => void>;
+  let consoleLogMock: MockInstance<(...data: unknown[]) => void>;
 
   beforeAll(() => {
-    consoleLogMock = vi.spyOn(console, "log").mockImplementation((...data: any[]) => data.join(" "));
+    consoleLogMock = vi.spyOn(console, "log").mockImplementation((...data: unknown[]) => data.join(" "));
   });
 
   beforeEach(() => {
