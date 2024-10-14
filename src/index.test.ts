@@ -9,6 +9,8 @@ import {
   logGetRegistry,
   logSetRegistry,
   logNewRegistry,
+  logAddKey,
+  logAddKeys,
   logUpdateKey,
   logUpdateKeys,
   LogLevel,
@@ -23,7 +25,7 @@ describe("Registry", () => {
     logNewRegistry();
   });
 
-  test("should get, set, and new", () => {
+  test("should get, set, and new the current registry", () => {
     const firstRegistry = logGetRegistry();
     const secondRegistry = logNewRegistry();
 
@@ -35,48 +37,105 @@ describe("Registry", () => {
     expect(firstRegistry).toBe(shouldBeFirstRegistry);
   });
 
-  test("should add keys", () => {
+  test("should add new keys", () => {
     const key0 = { name: "key0" };
     const key1 = { name: "key1" };
     const key2 = { name: "key2" };
     const key3 = { name: "key3" };
+    const key4 = { name: "key4" };
+    const key5 = { name: "key5" };
+    const registry = logGetRegistry();
+
+    logAddKey(key0, LogLevel.Off);
+    logAddKeys([
+      [key1, LogLevel.Debug],
+      [key2, LogLevel.Info],
+      [key3, LogLevel.Warn],
+      [key4, LogLevel.Error],
+    ]);
+    expect(registry.get(key0)).toBe(LogLevel.Off);
+    expect(registry.get(key1)).toBe(LogLevel.Debug);
+    expect(registry.get(key2)).toBe(LogLevel.Info);
+    expect(registry.get(key3)).toBe(LogLevel.Warn);
+    expect(registry.get(key4)).toBe(LogLevel.Error);
+    expect(registry.get(key5)).toBe(undefined);
+  });
+
+  test("should discard keys if adding again", () => {
+    const key0 = { name: "key0" };
+    const key1 = { name: "key1" };
+    const registry = logGetRegistry();
+
+    logAddKeys([
+      [key0, LogLevel.Off],
+      [key1, LogLevel.Off],
+    ]);
+
+    const isAdded = logAddKey(key0, LogLevel.Info);
+    expect(isAdded).toBe(false);
+    expect(registry.get(key0)).toBe(LogLevel.Off);
+
+    const acceptedAndDiscarded = logAddKeys([
+      [key0, LogLevel.Info],
+      [key1, LogLevel.Info],
+    ]);
+    expect(acceptedAndDiscarded).toEqual([[], [key0, key1]]);
+    expect(registry.get(key0)).toBe(LogLevel.Off);
+    expect(registry.get(key1)).toBe(LogLevel.Off);
+  });
+
+  test("should update new keys", () => {
+    const key0 = { name: "key0" };
+    const key1 = { name: "key1" };
+    const key2 = { name: "key2" };
+    const key3 = { name: "key3" };
+    const key4 = { name: "key4" };
+    const key5 = { name: "key5" };
     const registry = logGetRegistry();
 
     logUpdateKey(key0, LogLevel.Off);
     logUpdateKeys([
-      [key1, LogLevel.Off],
-      [key2, LogLevel.Off],
+      [key1, LogLevel.Debug],
+      [key2, LogLevel.Info],
+      [key3, LogLevel.Warn],
+      [key4, LogLevel.Error],
     ]);
-    expect(registry.has(key0)).toEqual(true);
-    expect(registry.has(key1)).toEqual(true);
-    expect(registry.has(key2)).toEqual(true);
-    expect(registry.has(key3)).toEqual(false);
+    expect(registry.get(key0)).toBe(LogLevel.Off);
+    expect(registry.get(key1)).toBe(LogLevel.Debug);
+    expect(registry.get(key2)).toBe(LogLevel.Info);
+    expect(registry.get(key3)).toBe(LogLevel.Warn);
+    expect(registry.get(key4)).toBe(LogLevel.Error);
+    expect(registry.get(key5)).toBe(undefined);
   });
 
-  test("should keep lowest level", () => {
-    const key = { name: "key" };
-    const registry = logGetRegistry();
-
-    logUpdateKey(key, LogLevel.Warn);
-    expect(registry.get(key)).toEqual(LogLevel.Warn);
-
-    logUpdateKey(key, LogLevel.Error);
-    expect(registry.get(key)).toEqual(LogLevel.Warn);
-
-    logUpdateKey(key, LogLevel.Info);
-    expect(registry.get(key)).toEqual(LogLevel.Info);
-
+  test("should update keeping lower level", () => {
+    const key0 = { name: "key0" };
     const key1 = { name: "key1" };
     const key2 = { name: "key2" };
+    const registry = logGetRegistry();
+
+    logUpdateKey(key0, LogLevel.Warn);
+    expect(registry.get(key0)).toBe(LogLevel.Warn);
+
+    logUpdateKey(key0, LogLevel.Error);
+    expect(registry.get(key0)).toBe(LogLevel.Warn);
+
+    logUpdateKey(key0, LogLevel.Info);
+    expect(registry.get(key0)).toBe(LogLevel.Info);
 
     logUpdateKeys([
       [key1, LogLevel.Warn],
       [key2, LogLevel.Warn],
+    ]);
+    expect(registry.get(key1)).toBe(LogLevel.Warn);
+    expect(registry.get(key2)).toBe(LogLevel.Warn);
+
+    logUpdateKeys([
       [key1, LogLevel.Error],
       [key2, LogLevel.Info],
     ]);
-    expect(registry.get(key1)).toEqual(LogLevel.Warn);
-    expect(registry.get(key2)).toEqual(LogLevel.Info);
+    expect(registry.get(key1)).toBe(LogLevel.Warn);
+    expect(registry.get(key2)).toBe(LogLevel.Info);
   });
 });
 

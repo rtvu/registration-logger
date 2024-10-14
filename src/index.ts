@@ -61,6 +61,45 @@ export function logNewRegistry(): LogRegistry {
 }
 
 /**
+ * Adds key with level to current registry if key does not exist.
+ *
+ * @param key - The key.
+ * @param level - The level.
+ * @returns If key was added.
+ */
+export function logAddKey(key: LogKey, level: LogLevel): boolean {
+  if (currentRegistry.has(key)) {
+    return false;
+  } else {
+    currentRegistry.set(key, level);
+    return true;
+  }
+}
+
+/**
+ * Adds key/level pairs to current registry. For each key, will add only if key does not exist.
+ *
+ * @param list - A list of key/level pairs.
+ * @returns Tuple of added keys and discarded keys.
+ */
+export function logAddKeys(list: [LogKey, LogLevel][]): [LogKey[], LogKey[]] {
+  const accepted: LogKey[] = [];
+  const discarded: LogKey[] = [];
+
+  for (const [key, level] of list) {
+    const isAdded = logAddKey(key, level);
+
+    if (isAdded) {
+      accepted.push(key);
+    } else {
+      discarded.push(key);
+    }
+  }
+
+  return [accepted, discarded];
+}
+
+/**
  * Updates key with new level to current registry only if new level has lower priority than old level.
  *
  * @param key - The key.
