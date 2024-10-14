@@ -32,7 +32,7 @@ logInfo(key, "Hello World!")
 ## Usage in a Module
 
 ```typescript
-import { logAddKey, logInfo, LogLevel} from `@rtvu/registration-logger`
+import { logAddKeys, logUpdateKeys, logInfo, LogLevel} from `@rtvu/registration-logger`
 
 // Specify level for each function
 logAddKeys([
@@ -44,7 +44,7 @@ logAddKeys([
 const moduleLogLevel = LogLevel.Off
 
 if (moduleLogLevel !== LogLevel.Off) {
-  logAddKeys([
+  logUpdateKeys([
     [foo, moduleLogLevel],
     [bar, moduleLogLevel],
   ])
