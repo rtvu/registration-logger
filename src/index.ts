@@ -61,28 +61,28 @@ export function logNewRegistry(): LogRegistry {
 }
 
 /**
- * Adds key with level to current registry. If key already exists, new level will be used if it is lower priority than old level.
+ * Updates key with new level to current registry only if new level has lower priority than old level.
  *
  * @param key - The key.
- * @param level - The level.
+ * @param newLevel - The new level.
  */
-export function logAddKey(key: LogKey, level: LogLevel): void {
+export function logUpdateKey(key: LogKey, newLevel: LogLevel): void {
   const registeredLevel = currentRegistry.get(key);
   if (registeredLevel === undefined) {
-    currentRegistry.set(key, level);
+    currentRegistry.set(key, newLevel);
   } else {
-    currentRegistry.set(key, Math.min(level, registeredLevel));
+    currentRegistry.set(key, Math.min(newLevel, registeredLevel));
   }
 }
 
 /**
- * Adds key/level pairs to current registry. If key already exists, new level will be used if it is lower priority than old level.
+ * Updates key/newLevel pairs to current registry. For each key, will update only if new levels has lower priority than old level.
  *
- * @param list - A list of key/level pairs.
+ * @param list - A list of key/newLevel pairs.
  */
-export function logAddKeys(list: [LogKey, LogLevel][]): void {
-  for (const [key, level] of list) {
-    logAddKey(key, level);
+export function logUpdateKeys(list: [LogKey, LogLevel][]): void {
+  for (const [key, newLevel] of list) {
+    logUpdateKey(key, newLevel);
   }
 }
 

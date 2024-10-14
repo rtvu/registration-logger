@@ -9,8 +9,8 @@ import {
   logGetRegistry,
   logSetRegistry,
   logNewRegistry,
-  logAddKey,
-  logAddKeys,
+  logUpdateKey,
+  logUpdateKeys,
   LogLevel,
 } from "./index";
 
@@ -42,8 +42,8 @@ describe("Registry", () => {
     const key3 = { name: "key3" };
     const registry = logGetRegistry();
 
-    logAddKey(key0, LogLevel.Off);
-    logAddKeys([
+    logUpdateKey(key0, LogLevel.Off);
+    logUpdateKeys([
       [key1, LogLevel.Off],
       [key2, LogLevel.Off],
     ]);
@@ -57,19 +57,19 @@ describe("Registry", () => {
     const key = { name: "key" };
     const registry = logGetRegistry();
 
-    logAddKey(key, LogLevel.Warn);
+    logUpdateKey(key, LogLevel.Warn);
     expect(registry.get(key)).toEqual(LogLevel.Warn);
 
-    logAddKey(key, LogLevel.Error);
+    logUpdateKey(key, LogLevel.Error);
     expect(registry.get(key)).toEqual(LogLevel.Warn);
 
-    logAddKey(key, LogLevel.Info);
+    logUpdateKey(key, LogLevel.Info);
     expect(registry.get(key)).toEqual(LogLevel.Info);
 
     const key1 = { name: "key1" };
     const key2 = { name: "key2" };
 
-    logAddKeys([
+    logUpdateKeys([
       [key1, LogLevel.Warn],
       [key2, LogLevel.Warn],
       [key1, LogLevel.Error],
@@ -105,7 +105,7 @@ describe("Log", () => {
 
     const key1 = { name: "key1" };
     const key2 = { name: "key2" };
-    logAddKey(key1, LogLevel.Debug);
+    logUpdateKey(key1, LogLevel.Debug);
 
     log(key1, LogLevel.Info, "Logged");
     expect(consoleLogMock.mock.results.length).toBe(1);
@@ -119,9 +119,9 @@ describe("Log", () => {
     const key1 = { name: "key1" };
     const key2 = { name: "key2" };
     const key3 = { name: "key3" };
-    logAddKey(key1, LogLevel.Debug);
-    logAddKey(key2, LogLevel.Error);
-    logAddKey(key3, LogLevel.Off);
+    logUpdateKey(key1, LogLevel.Debug);
+    logUpdateKey(key2, LogLevel.Error);
+    logUpdateKey(key3, LogLevel.Off);
 
     log(key1, LogLevel.Debug, "Logged");
     log(key1, LogLevel.Info, "Logged");
@@ -165,7 +165,7 @@ describe("Specific log", () => {
 
   test("should log specified level", () => {
     const key1 = { name: "key1" };
-    logAddKey(key1, LogLevel.Debug);
+    logUpdateKey(key1, LogLevel.Debug);
 
     const getResult = (levelDisplay: string) => `${levelDisplay}: key1: Logged`;
 
