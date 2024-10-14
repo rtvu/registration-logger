@@ -33,9 +33,9 @@ export type LogRegistry = Map<LogKey, LogLevel>;
 let currentRegistry: LogRegistry = new Map<LogKey, LogLevel>();
 
 /**
- * Returns the current registry.
+ * Returns the registry.
  *
- * @returns The current registry.
+ * @returns The registry.
  */
 export function logGetRegistry(): LogRegistry {
   return currentRegistry;
@@ -61,7 +61,7 @@ export function logNewRegistry(): LogRegistry {
 }
 
 /**
- * Adds key with level to current registry if key does not exist.
+ * Adds key with level to registry if key does not exist.
  *
  * @param key - The key.
  * @param level - The level.
@@ -77,7 +77,7 @@ export function logAddKey(key: LogKey, level: LogLevel): boolean {
 }
 
 /**
- * Adds key/level pairs to current registry. For each key, will add only if key does not exist.
+ * Adds key/level pairs to registry. For each key, will add only if key does not exist.
  *
  * @param list - A list of key/level pairs.
  * @returns Tuple of added keys and discarded keys.
@@ -100,7 +100,7 @@ export function logAddKeys(list: [LogKey, LogLevel][]): [LogKey[], LogKey[]] {
 }
 
 /**
- * Sets key with level to current registry.
+ * Sets key with level to registry.
  *
  * @param key - The key.
  * @param level - The level.
@@ -110,7 +110,7 @@ export function logSetKey(key: LogKey, level: LogLevel): void {
 }
 
 /**
- * Sets key/level pairs to current registry.
+ * Sets key/level pairs to registry.
  *
  * @param list - A list of key/level pairs.
  */
@@ -121,7 +121,7 @@ export function logSetKeys(list: [LogKey, LogLevel][]): void {
 }
 
 /**
- * Updates key with new level to current registry only if new level has lower priority than old level.
+ * Updates key with new level to registry only if new level has lower priority than old level.
  *
  * @param key - The key.
  * @param newLevel - The new level.
@@ -136,7 +136,7 @@ export function logUpdateKey(key: LogKey, newLevel: LogLevel): void {
 }
 
 /**
- * Updates key/newLevel pairs to current registry. For each key, will update only if new levels has lower priority than old level.
+ * Updates key/newLevel pairs to registry. For each key, will update only if new levels has lower priority than old level.
  *
  * @param list - A list of key/newLevel pairs.
  */

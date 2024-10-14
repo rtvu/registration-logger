@@ -30,12 +30,10 @@ describe("Registry", () => {
   test("should get, set, and new the current registry", () => {
     const firstRegistry = logGetRegistry();
     const secondRegistry = logNewRegistry();
-
     expect(firstRegistry).not.toBe(secondRegistry);
 
     logSetRegistry(firstRegistry);
     const shouldBeFirstRegistry = logGetRegistry();
-
     expect(firstRegistry).toBe(shouldBeFirstRegistry);
   });
 
