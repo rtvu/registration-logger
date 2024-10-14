@@ -100,6 +100,27 @@ export function logAddKeys(list: [LogKey, LogLevel][]): [LogKey[], LogKey[]] {
 }
 
 /**
+ * Sets key with level to current registry.
+ *
+ * @param key - The key.
+ * @param level - The level.
+ */
+export function logSetKey(key: LogKey, level: LogLevel): void {
+  currentRegistry.set(key, level);
+}
+
+/**
+ * Sets key/level pairs to current registry.
+ *
+ * @param list - A list of key/level pairs.
+ */
+export function logSetKeys(list: [LogKey, LogLevel][]): void {
+  for (const [key, level] of list) {
+    logSetKey(key, level);
+  }
+}
+
+/**
  * Updates key with new level to current registry only if new level has lower priority than old level.
  *
  * @param key - The key.

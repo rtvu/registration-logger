@@ -11,6 +11,8 @@ import {
   logNewRegistry,
   logAddKey,
   logAddKeys,
+  logSetKey,
+  logSetKeys,
   logUpdateKey,
   logUpdateKeys,
   LogLevel,
@@ -108,7 +110,36 @@ describe("Registry", () => {
     expect(registry.get(key5)).toBe(undefined);
   });
 
-  test("should update keeping lower level", () => {
+  test("should set keys", () => {
+    const key0 = { name: "key0" };
+    const key1 = { name: "key1" };
+    const registry = logGetRegistry();
+
+    logSetKey(key0, LogLevel.Warn);
+    expect(registry.get(key0)).toBe(LogLevel.Warn);
+
+    logSetKey(key0, LogLevel.Error);
+    expect(registry.get(key0)).toBe(LogLevel.Error);
+
+    logSetKey(key0, LogLevel.Info);
+    expect(registry.get(key0)).toBe(LogLevel.Info);
+
+    logSetKeys([
+      [key0, LogLevel.Warn],
+      [key1, LogLevel.Warn],
+    ]);
+    expect(registry.get(key0)).toBe(LogLevel.Warn);
+    expect(registry.get(key1)).toBe(LogLevel.Warn);
+
+    logSetKeys([
+      [key0, LogLevel.Error],
+      [key1, LogLevel.Info],
+    ]);
+    expect(registry.get(key0)).toBe(LogLevel.Error);
+    expect(registry.get(key1)).toBe(LogLevel.Info);
+  });
+
+  test("should update keeping lower level if updating again", () => {
     const key0 = { name: "key0" };
     const key1 = { name: "key1" };
     const key2 = { name: "key2" };
