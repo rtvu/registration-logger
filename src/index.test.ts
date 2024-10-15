@@ -27,7 +27,7 @@ describe("Registry", () => {
     logNewRegistry();
   });
 
-  test("should get, set, and new the current registry", () => {
+  test("can be gotten, set, and newed", () => {
     const firstRegistry = logGetRegistry();
     const secondRegistry = logNewRegistry();
     expect(firstRegistry).not.toBe(secondRegistry);
@@ -36,8 +36,18 @@ describe("Registry", () => {
     const shouldBeFirstRegistry = logGetRegistry();
     expect(firstRegistry).toBe(shouldBeFirstRegistry);
   });
+});
 
-  test("should add new keys", () => {
+describe("Keys", () => {
+  beforeEach(() => {
+    logNewRegistry();
+  });
+
+  afterAll(() => {
+    logNewRegistry();
+  });
+
+  test("can be added", () => {
     const key0 = { name: "key0" };
     const key1 = { name: "key1" };
     const key2 = { name: "key2" };
@@ -61,7 +71,7 @@ describe("Registry", () => {
     expect(registry.get(key5)).toBe(undefined);
   });
 
-  test("should discard keys if adding again", () => {
+  test("should be discarded if added again", () => {
     const key0 = { name: "key0" };
     const key1 = { name: "key1" };
     const registry = logGetRegistry();
@@ -84,31 +94,7 @@ describe("Registry", () => {
     expect(registry.get(key1)).toBe(LogLevel.Off);
   });
 
-  test("should update new keys", () => {
-    const key0 = { name: "key0" };
-    const key1 = { name: "key1" };
-    const key2 = { name: "key2" };
-    const key3 = { name: "key3" };
-    const key4 = { name: "key4" };
-    const key5 = { name: "key5" };
-    const registry = logGetRegistry();
-
-    logUpdateKey(key0, LogLevel.Off);
-    logUpdateKeys([
-      [key1, LogLevel.Debug],
-      [key2, LogLevel.Info],
-      [key3, LogLevel.Warn],
-      [key4, LogLevel.Error],
-    ]);
-    expect(registry.get(key0)).toBe(LogLevel.Off);
-    expect(registry.get(key1)).toBe(LogLevel.Debug);
-    expect(registry.get(key2)).toBe(LogLevel.Info);
-    expect(registry.get(key3)).toBe(LogLevel.Warn);
-    expect(registry.get(key4)).toBe(LogLevel.Error);
-    expect(registry.get(key5)).toBe(undefined);
-  });
-
-  test("should set keys", () => {
+  test("can be set", () => {
     const key0 = { name: "key0" };
     const key1 = { name: "key1" };
     const registry = logGetRegistry();
@@ -137,7 +123,31 @@ describe("Registry", () => {
     expect(registry.get(key1)).toBe(LogLevel.Info);
   });
 
-  test("should update keeping lower level if updating again", () => {
+  test("can be updated", () => {
+    const key0 = { name: "key0" };
+    const key1 = { name: "key1" };
+    const key2 = { name: "key2" };
+    const key3 = { name: "key3" };
+    const key4 = { name: "key4" };
+    const key5 = { name: "key5" };
+    const registry = logGetRegistry();
+
+    logUpdateKey(key0, LogLevel.Off);
+    logUpdateKeys([
+      [key1, LogLevel.Debug],
+      [key2, LogLevel.Info],
+      [key3, LogLevel.Warn],
+      [key4, LogLevel.Error],
+    ]);
+    expect(registry.get(key0)).toBe(LogLevel.Off);
+    expect(registry.get(key1)).toBe(LogLevel.Debug);
+    expect(registry.get(key2)).toBe(LogLevel.Info);
+    expect(registry.get(key3)).toBe(LogLevel.Warn);
+    expect(registry.get(key4)).toBe(LogLevel.Error);
+    expect(registry.get(key5)).toBe(undefined);
+  });
+
+  test("should keep lower level if updated again", () => {
     const key0 = { name: "key0" };
     const key1 = { name: "key1" };
     const key2 = { name: "key2" };
@@ -168,7 +178,7 @@ describe("Registry", () => {
   });
 });
 
-describe("Log", () => {
+describe("Logging", () => {
   let consoleLogMock: MockInstance<(...data: unknown[]) => void>;
 
   beforeAll(() => {
@@ -188,50 +198,50 @@ describe("Log", () => {
     consoleLogMock.mockRestore();
   });
 
-  test("should log registered keys", () => {
-    const result = "Info: key1: Logged";
+  test("should log only registered keys", () => {
+    const result = "Info: key0: Logged";
 
+    const key0 = { name: "key0" };
     const key1 = { name: "key1" };
-    const key2 = { name: "key2" };
-    logUpdateKey(key1, LogLevel.Debug);
+    logUpdateKey(key0, LogLevel.Debug);
 
-    log(key1, LogLevel.Info, "Logged");
+    log(key0, LogLevel.Info, "Logged");
     expect(consoleLogMock.mock.results.length).toBe(1);
     expect(consoleLogMock.mock.results[0]).toEqual({ type: "return", value: result });
 
-    log(key2, LogLevel.Info, "Logged");
+    log(key1, LogLevel.Info, "Logged");
     expect(consoleLogMock.mock.results.length).toBe(1);
   });
 
   test("should log all enabled levels", () => {
+    const key0 = { name: "key0" };
     const key1 = { name: "key1" };
     const key2 = { name: "key2" };
-    const key3 = { name: "key3" };
-    logUpdateKey(key1, LogLevel.Debug);
-    logUpdateKey(key2, LogLevel.Error);
-    logUpdateKey(key3, LogLevel.Off);
+    logUpdateKey(key0, LogLevel.Debug);
+    logUpdateKey(key1, LogLevel.Error);
+    logUpdateKey(key2, LogLevel.Off);
+
+    log(key0, LogLevel.Debug, "Logged");
+    log(key0, LogLevel.Info, "Logged");
+    log(key0, LogLevel.Warn, "Logged");
+    log(key0, LogLevel.Error, "Logged");
+    expect(consoleLogMock.mock.results.length).toBe(4);
 
     log(key1, LogLevel.Debug, "Logged");
     log(key1, LogLevel.Info, "Logged");
     log(key1, LogLevel.Warn, "Logged");
     log(key1, LogLevel.Error, "Logged");
-    expect(consoleLogMock.mock.results.length).toBe(4);
+    expect(consoleLogMock.mock.results.length).toBe(5);
 
     log(key2, LogLevel.Debug, "Logged");
     log(key2, LogLevel.Info, "Logged");
     log(key2, LogLevel.Warn, "Logged");
     log(key2, LogLevel.Error, "Logged");
     expect(consoleLogMock.mock.results.length).toBe(5);
-
-    log(key3, LogLevel.Debug, "Logged");
-    log(key3, LogLevel.Info, "Logged");
-    log(key3, LogLevel.Warn, "Logged");
-    log(key3, LogLevel.Error, "Logged");
-    expect(consoleLogMock.mock.results.length).toBe(5);
   });
 });
 
-describe("Specific log", () => {
+describe("Specific logging", () => {
   let consoleLogMock: MockInstance<(...data: unknown[]) => void>;
 
   beforeAll(() => {
@@ -252,16 +262,15 @@ describe("Specific log", () => {
   });
 
   test("should log specified level", () => {
-    const key1 = { name: "key1" };
-    logUpdateKey(key1, LogLevel.Debug);
+    const key0 = { name: "key0" };
+    logUpdateKey(key0, LogLevel.Debug);
 
-    const getResult = (levelDisplay: string) => `${levelDisplay}: key1: Logged`;
+    const getResult = (levelDisplay: string) => `${levelDisplay}: key0: Logged`;
 
-    logDebug(key1, "Logged");
-    logInfo(key1, "Logged");
-    logWarn(key1, "Logged");
-    logError(key1, "Logged");
-
+    logDebug(key0, "Logged");
+    logInfo(key0, "Logged");
+    logWarn(key0, "Logged");
+    logError(key0, "Logged");
     expect(consoleLogMock.mock.results[0]).toEqual({ type: "return", value: getResult("Debug") });
     expect(consoleLogMock.mock.results[1]).toEqual({ type: "return", value: getResult("Info") });
     expect(consoleLogMock.mock.results[2]).toEqual({ type: "return", value: getResult("Warn") });
