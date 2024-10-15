@@ -24,6 +24,16 @@ const logLevelDisplay: Record<LogLevel, string> = {
 };
 
 /**
+ * Returns display of level.
+ *
+ * @param level - The level.
+ * @returns The display of the level
+ */
+export function logGetLevelDisplay(level: LogLevel): string {
+  return logLevelDisplay[level];
+}
+
+/**
  * Keys are distinguished by reference. If both `description` and `name` properties are present, `description` will be used for logging.
  */
 export type LogKey = { description: string } | { name: string };
@@ -160,7 +170,7 @@ export function log(
   level: LogLevel.Debug | LogLevel.Info | LogLevel.Warn | LogLevel.Error,
   ...data: unknown[]
 ): void {
-  const levelDisplay = logLevelDisplay[level];
+  const levelDisplay = logGetLevelDisplay(level);
   const keyDisplay = "description" in key ? key.description : key.name;
   const registeredLevel = currentRegistry.get(key);
 

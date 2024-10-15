@@ -6,6 +6,7 @@ import {
   logInfo,
   logWarn,
   logError,
+  logGetLevelDisplay,
   logGetRegistry,
   logSetRegistry,
   logNewRegistry,
@@ -20,6 +21,16 @@ import {
   logUpdateKeys,
   LogLevel,
 } from "./index";
+
+describe("Levels", () => {
+  test("can get display", () => {
+    expect(logGetLevelDisplay(LogLevel.Debug)).toBe("Debug");
+    expect(logGetLevelDisplay(LogLevel.Info)).toBe("Info");
+    expect(logGetLevelDisplay(LogLevel.Warn)).toBe("Warn");
+    expect(logGetLevelDisplay(LogLevel.Error)).toBe("Error");
+    expect(logGetLevelDisplay(LogLevel.Off)).toBe("Off");
+  });
+});
 
 describe("Registry", () => {
   beforeEach(() => {
