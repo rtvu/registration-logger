@@ -146,8 +146,10 @@ export function logUpdateKeys(list: [LogKey, LogLevel][]): void {
   }
 }
 
+let overrideLevel: LogLevel = LogLevel.Off;
+
 /**
- * Log data if key is enabled for level.
+ * Log data if key is enabled for level or override is set.
  *
  * @param key - The key.
  * @param level - The level.
@@ -157,12 +159,15 @@ export function log(
   key: LogKey,
   level: LogLevel.Debug | LogLevel.Info | LogLevel.Warn | LogLevel.Error,
   ...data: unknown[]
-) {
+): void {
+  const levelDisplay = logLevelDisplay[level];
+  const keyDisplay = "description" in key ? key.description : key.name;
   const registeredLevel = currentRegistry.get(key);
+
   if (registeredLevel !== undefined && registeredLevel <= level) {
-    const levelDisplay = logLevelDisplay[level];
-    const keyDisplay = "description" in key ? key.description : key.name;
     console.log(`${levelDisplay}:`, `${keyDisplay}:`, ...data);
+  } else if (overrideLevel <= level) {
+    console.log("(Override):", `${levelDisplay}:`, `${keyDisplay}:`, ...data);
   }
 }
 
@@ -204,4 +209,38 @@ export function logWarn(key: LogKey, ...data: unknown[]): void {
  */
 export function logError(key: LogKey, ...data: unknown[]): void {
   log(key, LogLevel.Error, ...data);
+}
+
+/**
+ * Gets the override level.
+ *
+ * @returns The override level.
+ */
+export function logGetOverrideLevel(): LogLevel {
+  return overrideLevel;
+}
+
+/**
+ * Sets the override level.
+ *
+ * @param level The override level.
+ */
+export function logSetOverrideLevel(level: LogLevel): void {
+  overrideLevel = level;
+}
+
+/**
+ * Executes callback with override level set.
+ *
+ * @param level
+ * @param callback
+ */
+export function logWrapOverride(level: LogLevel, callback: () => void): void {
+  const currentOverrideLevel = overrideLevel;
+
+  logSetOverrideLevel(level);
+
+  callback();
+
+  logSetOverrideLevel(currentOverrideLevel);
 }
