@@ -27,7 +27,7 @@ const logLevelDisplay: Record<LogLevel, string> = {
  * Returns display of level.
  *
  * @param level - The level.
- * @returns The display of the level
+ * @returns The display of level.
  */
 export function logGetLevelDisplay(level: LogLevel): string {
   return logLevelDisplay[level];
@@ -38,12 +38,15 @@ export function logGetLevelDisplay(level: LogLevel): string {
  */
 export type LogKey = { description: string } | { name: string };
 
+/**
+ * Registries map keys to levels.
+ */
 export type LogRegistry = Map<LogKey, LogLevel>;
 
 let currentRegistry: LogRegistry = new Map<LogKey, LogLevel>();
 
 /**
- * Returns the registry.
+ * Returns registry.
  *
  * @returns The registry.
  */
@@ -52,26 +55,27 @@ export function logGetRegistry(): LogRegistry {
 }
 
 /**
- * Sets the registry.
+ * Sets registry.
  *
- * @param registry - Registry to use.
+ * @param registry - The registry.
  */
 export function logSetRegistry(registry: LogRegistry): void {
   currentRegistry = registry;
 }
 
 /**
- * Sets new registry.
+ * Sets a new registry.
  *
  * @returns The new registry.
  */
 export function logNewRegistry(): LogRegistry {
   currentRegistry = new Map<LogKey, LogLevel>();
+
   return currentRegistry;
 }
 
 /**
- * Adds key with level to registry if key does not exist.
+ * Adds key with level to registry only if key does not exist.
  *
  * @param key - The key.
  * @param level - The level.
@@ -89,24 +93,24 @@ export function logAddKey(key: LogKey, level: LogLevel): boolean {
 /**
  * Adds key/level pairs to registry. For each key, will add only if key does not exist.
  *
- * @param list - A list of key/level pairs.
- * @returns Tuple of added keys and discarded keys.
+ * @param list - The list of key/level pairs.
+ * @returns The tuple of added keys and not added keys.
  */
 export function logAddKeys(list: [LogKey, LogLevel][]): [LogKey[], LogKey[]] {
-  const accepted: LogKey[] = [];
-  const discarded: LogKey[] = [];
+  const addedKeys: LogKey[] = [];
+  const notAddedKeys: LogKey[] = [];
 
   for (const [key, level] of list) {
     const isAdded = logAddKey(key, level);
 
     if (isAdded) {
-      accepted.push(key);
+      addedKeys.push(key);
     } else {
-      discarded.push(key);
+      notAddedKeys.push(key);
     }
   }
 
-  return [accepted, discarded];
+  return [addedKeys, notAddedKeys];
 }
 
 /**
@@ -136,34 +140,48 @@ export function logSetKeys(list: [LogKey, LogLevel][]): void {
  * @param key - The key.
  * @param newLevel - The new level.
  */
-export function logUpdateKey(key: LogKey, newLevel: LogLevel): void {
+export function logUpdateKey(key: LogKey, newLevel: LogLevel): boolean {
   const registeredLevel = currentRegistry.get(key);
-  if (registeredLevel === undefined) {
+  if (registeredLevel === undefined || newLevel < registeredLevel) {
     currentRegistry.set(key, newLevel);
+
+    return true;
   } else {
-    currentRegistry.set(key, Math.min(newLevel, registeredLevel));
+    return false;
   }
 }
 
 /**
- * Updates key/newLevel pairs to registry. For each key, will update only if new levels has lower priority than old level.
+ * Updates key/newLevel pairs to registry. For each key, will update only if new levels have lower priority than old levels.
  *
- * @param list - A list of key/newLevel pairs.
+ * @param list - The list of key/newLevel pairs.
+ * @returns The tuple of updated keys and not updated keys.
  */
-export function logUpdateKeys(list: [LogKey, LogLevel][]): void {
+export function logUpdateKeys(list: [LogKey, LogLevel][]): [LogKey[], LogKey[]] {
+  const updatedKeys: LogKey[] = [];
+  const notUpdatedKeys: LogKey[] = [];
+
   for (const [key, newLevel] of list) {
-    logUpdateKey(key, newLevel);
+    const isUpdated = logUpdateKey(key, newLevel);
+
+    if (isUpdated) {
+      updatedKeys.push(key);
+    } else {
+      notUpdatedKeys.push(key);
+    }
   }
+
+  return [updatedKeys, notUpdatedKeys];
 }
 
 let overrideLevel: LogLevel = LogLevel.Off;
 
 /**
- * Log data if key is enabled for level or override is set.
+ * Log data only if either key is enabled for level or override is set.
  *
  * @param key - The key.
  * @param level - The level.
- * @param data - The data to be logged.
+ * @param data - The data.
  */
 export function log(
   key: LogKey,
@@ -172,8 +190,8 @@ export function log(
 ): void {
   const levelDisplay = logGetLevelDisplay(level);
   const keyDisplay = "description" in key ? key.description : key.name;
-  const registeredLevel = currentRegistry.get(key);
 
+  const registeredLevel = currentRegistry.get(key);
   if (registeredLevel !== undefined && registeredLevel <= level) {
     console.log(`${levelDisplay}:`, `${keyDisplay}:`, ...data);
   } else if (overrideLevel <= level) {
@@ -182,47 +200,47 @@ export function log(
 }
 
 /**
- * Log data if key is enabled for `Debug` level.
+ * Log data only if key is enabled for `Debug` level.
  *
  * @param key - The key.
- * @param data - The data to be logged.
+ * @param data - The data.
  */
 export function logDebug(key: LogKey, ...data: unknown[]): void {
   log(key, LogLevel.Debug, ...data);
 }
 
 /**
- * Log data if key is enabled for `Info` level.
+ * Log data only if key is enabled for `Info` level.
  *
  * @param key - The key.
- * @param data - The data to be logged.
+ * @param data - The data.
  */
 export function logInfo(key: LogKey, ...data: unknown[]): void {
   log(key, LogLevel.Info, ...data);
 }
 
 /**
- * Log data if key is enabled for `Warn` level.
+ * Log data only if key is enabled for `Warn` level.
  *
  * @param key - The key.
- * @param data - The data to be logged.
+ * @param data - The data.
  */
 export function logWarn(key: LogKey, ...data: unknown[]): void {
   log(key, LogLevel.Warn, ...data);
 }
 
 /**
- * Log data if key is enabled for `Error` level.
+ * Log data only if key is enabled for `Error` level.
  *
  * @param key - The key.
- * @param data - The data to be logged.
+ * @param data - The data.
  */
 export function logError(key: LogKey, ...data: unknown[]): void {
   log(key, LogLevel.Error, ...data);
 }
 
 /**
- * Gets the override level.
+ * Gets override level.
  *
  * @returns The override level.
  */
@@ -231,7 +249,7 @@ export function logGetOverrideLevel(): LogLevel {
 }
 
 /**
- * Sets the override level.
+ * Sets override level.
  *
  * @param level The override level.
  */
@@ -242,8 +260,8 @@ export function logSetOverrideLevel(level: LogLevel): void {
 /**
  * Executes callback with override level set.
  *
- * @param level
- * @param callback
+ * @param level - The level.
+ * @param callback - The callback.
  */
 export function logWrapOverride(level: LogLevel, callback: () => void): void {
   const currentOverrideLevel = overrideLevel;

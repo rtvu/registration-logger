@@ -20,7 +20,20 @@ import {
   logUpdateKey,
   logUpdateKeys,
   LogLevel,
+  LogKey,
 } from "./index";
+
+let consoleLogMock: MockInstance<(...data: unknown[]) => void>;
+
+const getLogResult = (key: LogKey, level: LogLevel, message: string): string => {
+  const keyDisplay = "description" in key ? key.description : key.name;
+
+  return `${logGetLevelDisplay(level)}: ${keyDisplay}: ${message}`;
+};
+
+const getLogOverrideResult = (key: LogKey, level: LogLevel, message: string): string => {
+  return `(Override): ${getLogResult(key, level, message)}`;
+};
 
 describe("Levels", () => {
   test("can get display", () => {
@@ -70,22 +83,26 @@ describe("Keys", () => {
     const key5 = { name: "key5" };
     const registry = logGetRegistry();
 
-    logAddKey(key0, LogLevel.Off);
-    logAddKeys([
+    const isAdded = logAddKey(key0, LogLevel.Off);
+    expect(isAdded).toBe(true);
+    expect(registry.get(key0)).toBe(LogLevel.Off);
+
+    const addedKeysAndNotAddedKeys = logAddKeys([
       [key1, LogLevel.Debug],
       [key2, LogLevel.Info],
       [key3, LogLevel.Warn],
       [key4, LogLevel.Error],
     ]);
-    expect(registry.get(key0)).toBe(LogLevel.Off);
+    expect(addedKeysAndNotAddedKeys).toEqual([[key1, key2, key3, key4], []]);
     expect(registry.get(key1)).toBe(LogLevel.Debug);
     expect(registry.get(key2)).toBe(LogLevel.Info);
     expect(registry.get(key3)).toBe(LogLevel.Warn);
     expect(registry.get(key4)).toBe(LogLevel.Error);
+
     expect(registry.get(key5)).toBe(undefined);
   });
 
-  test("should be discarded if added again", () => {
+  test("should not be added if adding again", () => {
     const key0 = { name: "key0" };
     const key1 = { name: "key1" };
     const registry = logGetRegistry();
@@ -113,14 +130,23 @@ describe("Keys", () => {
     const key1 = { name: "key1" };
     const registry = logGetRegistry();
 
-    logSetKey(key0, LogLevel.Warn);
-    expect(registry.get(key0)).toBe(LogLevel.Warn);
+    logSetKey(key0, LogLevel.Off);
+    expect(registry.get(key0)).toBe(LogLevel.Off);
 
     logSetKey(key0, LogLevel.Error);
     expect(registry.get(key0)).toBe(LogLevel.Error);
 
+    logSetKey(key0, LogLevel.Warn);
+    expect(registry.get(key0)).toBe(LogLevel.Warn);
+
     logSetKey(key0, LogLevel.Info);
     expect(registry.get(key0)).toBe(LogLevel.Info);
+
+    logSetKey(key0, LogLevel.Debug);
+    expect(registry.get(key0)).toBe(LogLevel.Debug);
+
+    logSetKey(key0, LogLevel.Off);
+    expect(registry.get(key0)).toBe(LogLevel.Off);
 
     logSetKeys([
       [key0, LogLevel.Warn],
@@ -146,18 +172,22 @@ describe("Keys", () => {
     const key5 = { name: "key5" };
     const registry = logGetRegistry();
 
-    logUpdateKey(key0, LogLevel.Off);
-    logUpdateKeys([
+    const isUpdated = logUpdateKey(key0, LogLevel.Off);
+    expect(isUpdated).toBe(true);
+    expect(registry.get(key0)).toBe(LogLevel.Off);
+
+    const updatedAndNotUpdated = logUpdateKeys([
       [key1, LogLevel.Debug],
       [key2, LogLevel.Info],
       [key3, LogLevel.Warn],
       [key4, LogLevel.Error],
     ]);
-    expect(registry.get(key0)).toBe(LogLevel.Off);
+    expect(updatedAndNotUpdated).toEqual([[key1, key2, key3, key4], []]);
     expect(registry.get(key1)).toBe(LogLevel.Debug);
     expect(registry.get(key2)).toBe(LogLevel.Info);
     expect(registry.get(key3)).toBe(LogLevel.Warn);
     expect(registry.get(key4)).toBe(LogLevel.Error);
+
     expect(registry.get(key5)).toBe(undefined);
   });
 
@@ -167,34 +197,31 @@ describe("Keys", () => {
     const key2 = { name: "key2" };
     const registry = logGetRegistry();
 
-    logUpdateKey(key0, LogLevel.Warn);
-    expect(registry.get(key0)).toBe(LogLevel.Warn);
-
-    logUpdateKey(key0, LogLevel.Error);
-    expect(registry.get(key0)).toBe(LogLevel.Warn);
-
-    logUpdateKey(key0, LogLevel.Info);
-    expect(registry.get(key0)).toBe(LogLevel.Info);
-
     logUpdateKeys([
+      [key0, LogLevel.Warn],
       [key1, LogLevel.Warn],
       [key2, LogLevel.Warn],
     ]);
-    expect(registry.get(key1)).toBe(LogLevel.Warn);
-    expect(registry.get(key2)).toBe(LogLevel.Warn);
 
-    logUpdateKeys([
+    let isUpdated = logUpdateKey(key0, LogLevel.Error);
+    expect(isUpdated).toBe(false);
+    expect(registry.get(key0)).toBe(LogLevel.Warn);
+
+    isUpdated = logUpdateKey(key0, LogLevel.Info);
+    expect(isUpdated).toBe(true);
+    expect(registry.get(key0)).toBe(LogLevel.Info);
+
+    const updatedKeysAndNotUpdatedKeys = logUpdateKeys([
       [key1, LogLevel.Error],
       [key2, LogLevel.Info],
     ]);
+    expect(updatedKeysAndNotUpdatedKeys).toEqual([[key2], [key1]]);
     expect(registry.get(key1)).toBe(LogLevel.Warn);
     expect(registry.get(key2)).toBe(LogLevel.Info);
   });
 });
 
 describe("Logging", () => {
-  let consoleLogMock: MockInstance<(...data: unknown[]) => void>;
-
   beforeAll(() => {
     consoleLogMock = vi.spyOn(console, "log").mockImplementation((...data: unknown[]) => data.join(" "));
   });
@@ -213,15 +240,16 @@ describe("Logging", () => {
   });
 
   test("should log only registered keys", () => {
-    const result = "Info: key0: Logged";
-
     const key0 = { name: "key0" };
     const key1 = { name: "key1" };
     logUpdateKey(key0, LogLevel.Debug);
 
     log(key0, LogLevel.Info, "Logged");
     expect(consoleLogMock.mock.results.length).toBe(1);
-    expect(consoleLogMock.mock.results[0]).toEqual({ type: "return", value: result });
+    expect(consoleLogMock.mock.results[0]).toEqual({
+      type: "return",
+      value: getLogResult(key0, LogLevel.Info, "Logged"),
+    });
 
     log(key1, LogLevel.Info, "Logged");
     expect(consoleLogMock.mock.results.length).toBe(1);
@@ -240,12 +268,32 @@ describe("Logging", () => {
     log(key0, LogLevel.Warn, "Logged");
     log(key0, LogLevel.Error, "Logged");
     expect(consoleLogMock.mock.results.length).toBe(4);
+    expect(consoleLogMock.mock.results[0]).toEqual({
+      type: "return",
+      value: getLogResult(key0, LogLevel.Debug, "Logged"),
+    });
+    expect(consoleLogMock.mock.results[1]).toEqual({
+      type: "return",
+      value: getLogResult(key0, LogLevel.Info, "Logged"),
+    });
+    expect(consoleLogMock.mock.results[2]).toEqual({
+      type: "return",
+      value: getLogResult(key0, LogLevel.Warn, "Logged"),
+    });
+    expect(consoleLogMock.mock.results[3]).toEqual({
+      type: "return",
+      value: getLogResult(key0, LogLevel.Error, "Logged"),
+    });
 
     log(key1, LogLevel.Debug, "Logged");
     log(key1, LogLevel.Info, "Logged");
     log(key1, LogLevel.Warn, "Logged");
     log(key1, LogLevel.Error, "Logged");
     expect(consoleLogMock.mock.results.length).toBe(5);
+    expect(consoleLogMock.mock.results[4]).toEqual({
+      type: "return",
+      value: getLogResult(key1, LogLevel.Error, "Logged"),
+    });
 
     log(key2, LogLevel.Debug, "Logged");
     log(key2, LogLevel.Info, "Logged");
@@ -256,8 +304,6 @@ describe("Logging", () => {
 });
 
 describe("Specific logging", () => {
-  let consoleLogMock: MockInstance<(...data: unknown[]) => void>;
-
   beforeAll(() => {
     consoleLogMock = vi.spyOn(console, "log").mockImplementation((...data: unknown[]) => data.join(" "));
   });
@@ -279,22 +325,30 @@ describe("Specific logging", () => {
     const key0 = { name: "key0" };
     logUpdateKey(key0, LogLevel.Debug);
 
-    const getResult = (levelDisplay: string) => `${levelDisplay}: key0: Logged`;
-
     logDebug(key0, "Logged");
     logInfo(key0, "Logged");
     logWarn(key0, "Logged");
     logError(key0, "Logged");
-    expect(consoleLogMock.mock.results[0]).toEqual({ type: "return", value: getResult("Debug") });
-    expect(consoleLogMock.mock.results[1]).toEqual({ type: "return", value: getResult("Info") });
-    expect(consoleLogMock.mock.results[2]).toEqual({ type: "return", value: getResult("Warn") });
-    expect(consoleLogMock.mock.results[3]).toEqual({ type: "return", value: getResult("Error") });
+    expect(consoleLogMock.mock.results[0]).toEqual({
+      type: "return",
+      value: getLogResult(key0, LogLevel.Debug, "Logged"),
+    });
+    expect(consoleLogMock.mock.results[1]).toEqual({
+      type: "return",
+      value: getLogResult(key0, LogLevel.Info, "Logged"),
+    });
+    expect(consoleLogMock.mock.results[2]).toEqual({
+      type: "return",
+      value: getLogResult(key0, LogLevel.Warn, "Logged"),
+    });
+    expect(consoleLogMock.mock.results[3]).toEqual({
+      type: "return",
+      value: getLogResult(key0, LogLevel.Error, "Logged"),
+    });
   });
 });
 
 describe("Override logging", () => {
-  let consoleLogMock: MockInstance<(...data: unknown[]) => void>;
-
   beforeAll(() => {
     consoleLogMock = vi.spyOn(console, "log").mockImplementation((...data: unknown[]) => data.join(" "));
   });
@@ -329,8 +383,6 @@ describe("Override logging", () => {
   test("should log unregistered key", () => {
     const key0 = { name: "key0" };
 
-    const getOverrideResult = (levelDisplay: string) => `(Override): ${levelDisplay}: key0: Logged`;
-
     logInfo(key0, "Logged");
     expect(consoleLogMock.mock.results.length).toBe(0);
 
@@ -341,7 +393,10 @@ describe("Override logging", () => {
 
     logError(key0, "Logged");
     expect(consoleLogMock.mock.results.length).toBe(1);
-    expect(consoleLogMock.mock.results[0]).toEqual({ type: "return", value: getOverrideResult("Error") });
+    expect(consoleLogMock.mock.results[0]).toEqual({
+      type: "return",
+      value: getLogOverrideResult(key0, LogLevel.Error, "Logged"),
+    });
 
     logSetOverrideLevel(LogLevel.Off);
 
@@ -353,18 +408,21 @@ describe("Override logging", () => {
     const key0 = { name: "key0" };
     logUpdateKey(key0, LogLevel.Error);
 
-    const getResult = (levelDisplay: string) => `${levelDisplay}: key0: Logged`;
-    const getOverrideResult = (levelDisplay: string) => `(Override): ${levelDisplay}: key0: Logged`;
-
     logSetOverrideLevel(LogLevel.Debug);
 
     logError(key0, "Logged");
     expect(consoleLogMock.mock.results.length).toBe(1);
-    expect(consoleLogMock.mock.results[0]).toEqual({ type: "return", value: getResult("Error") });
+    expect(consoleLogMock.mock.results[0]).toEqual({
+      type: "return",
+      value: getLogResult(key0, LogLevel.Error, "Logged"),
+    });
 
     logDebug(key0, "Logged");
     expect(consoleLogMock.mock.results.length).toBe(2);
-    expect(consoleLogMock.mock.results[1]).toEqual({ type: "return", value: getOverrideResult("Debug") });
+    expect(consoleLogMock.mock.results[1]).toEqual({
+      type: "return",
+      value: getLogOverrideResult(key0, LogLevel.Debug, "Logged"),
+    });
 
     logSetOverrideLevel(LogLevel.Off);
 
@@ -374,8 +432,6 @@ describe("Override logging", () => {
 
   test("should log with wrapping", () => {
     const key0 = { name: "key0" };
-
-    const getOverrideResult = (levelDisplay: string) => `(Override): ${levelDisplay}: key0: Logged`;
 
     const callback = () => {
       logDebug(key0, "Logged");
@@ -389,7 +445,10 @@ describe("Override logging", () => {
       callback();
     });
     expect(consoleLogMock.mock.results.length).toBe(1);
-    expect(consoleLogMock.mock.results[0]).toEqual({ type: "return", value: getOverrideResult("Error") });
+    expect(consoleLogMock.mock.results[0]).toEqual({
+      type: "return",
+      value: getLogOverrideResult(key0, LogLevel.Error, "Logged"),
+    });
 
     callback();
     expect(consoleLogMock.mock.results.length).toBe(1);
