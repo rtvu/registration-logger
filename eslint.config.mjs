@@ -1,11 +1,12 @@
 import eslint from "@eslint/js";
-import tseslint from "typescript-eslint";
-import prettiereslint from "eslint-config-prettier";
+import typescriptEslint from "typescript-eslint";
+import vitestEslint from "eslint-plugin-vitest";
+import prettierEslint from "eslint-config-prettier";
 
-export default tseslint.config(
+export default typescriptEslint.config(
   eslint.configs.recommended,
-  ...tseslint.configs.strictTypeChecked,
-  ...tseslint.configs.stylisticTypeChecked,
+  ...typescriptEslint.configs.strictTypeChecked,
+  ...typescriptEslint.configs.stylisticTypeChecked,
   {
     languageOptions: {
       parserOptions: {
@@ -15,5 +16,24 @@ export default tseslint.config(
       },
     },
   },
-  prettiereslint,
+  {
+    files: ["./src/**/*.test.ts"],
+    plugins: {
+      vitest: vitestEslint,
+    },
+    rules: {
+      ...vitestEslint.configs.recommended.rules,
+    },
+    settings: {
+      vitest: {
+        typecheck: true,
+      },
+    },
+    languageOptions: {
+      globals: {
+        ...vitestEslint.environments.env.globals,
+      },
+    },
+  },
+  prettierEslint,
 );
